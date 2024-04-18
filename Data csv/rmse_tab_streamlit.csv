@@ -1,0 +1,3 @@
+Model,Score training, Score test, RMSE
+DecisionTreeRegressor,0.9995,0.9957,5.25
+XGBRegressor,0.9939,0.9927,6.96
