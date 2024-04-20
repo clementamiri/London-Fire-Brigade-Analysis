@@ -5,14 +5,6 @@ from PIL import Image
 import pickle
 
 
-from scipy import stats
-
-from statsmodels.stats.multicomp import MultiComparison
-import pingouin as pg
-
-from statsmodels.formula.api import ols
-from statsmodels.stats.anova import anova_lm
-
 import folium
 import math
 
@@ -92,6 +84,11 @@ if page == pages[1]:
     st.write(lfb[['Borough','label_pop', 'price_house_median', 'label_price','Label_response',]].head(10))
   
 # ----------------------------------------------------Data Visualisation ------------------------------------------------------------    
+if page == pages[2]:
+    bi1 = Image.open("st_image/BI12.png")
+    st.image(bi1, use_column_width=True)
+    bi2 = Image.open('st_image/BI2.png')
+    st.image(bi2, use_column_width=True)
 #------------------------------------------------Statistique -----------------------------------------------------------
 if page == pages[3]:
     st.title("Analyse statistique")
@@ -103,19 +100,20 @@ if page == pages[3]:
     g2 = lfb.loc[lfb['label_pop'] == "Dense"]['Duree_intervention']
     g3 = lfb.loc[lfb['label_pop'] == "Très dense"]['Duree_intervention']
 
-    stat, p = stats.levene(g1, g2, g3, center='median')
+    
     
     result_df = pd.DataFrame({
     'Group': ['Faible densité', 'Dense', 'Très dense'],
-    'Test Statistic': [stat, stat, stat],
-    'p-value': [p, p, p]
+    'Test Statistic': [4.859388333710579, 4.859388333710579, 4.859388333710579],
+    'p-value': [0.007764386325863089, 0.007764386325863089, 0.007764386325863089]
     })
 
     st.write(result_df)
     
-    st.write("Statistique de Levene :", stat)
-    st.write("Valeur p :", p)
-
+    st.write("Statistique de Levene :", 4.859388333710579)
+    st.write("Valeur p :", 0.007764386325863089)
+    
+    p = 0.007764386325863089
     if p < 0.05:
         st.write("Interpretation: p < 0.05,Il y a donc une différence significative dans la variance de la durée d'intervention entre les groupes.")
         
@@ -124,9 +122,7 @@ if page == pages[3]:
     
     # Test anonva
     st.subheader('Anova robust k=3')
-    import pingouin as pg
     
-    anova_robuste = pg.welch_anova(dv = 'Duree_intervention', between="label_pop", data=lfb)
     
     st.write('Resultat test Anova de type robuste pour compenser la violation du test Levene.')
     res = pd.read_csv('Data csv/anova.csv')
@@ -134,35 +130,34 @@ if page == pages[3]:
     st.write(res)    
     #Test de Turkey 
     st.subheader("Test de Tukey")
-    tukey_label_price = MultiComparison(lfb['Duree_intervention'], lfb['label_pop']).tukeyhsd()
-    tukey_results_df = pd.DataFrame(data=tukey_label_price._results_table.data[1:], columns=tukey_label_price._results_table.data[0])
+    
     st.subheader(" Multiple Comparison of Means - Tukey HSD, FWER=0.05")
-    st.write(tukey_results_df)
+    turkey = pd.read_csv("Data csv/Turkey.csv")
+    st.write(turkey)
     st.write("La différence entre la moyenne de faible densité et très dense est la plus importante (131.902) ce qui indique la plus grande magnitude.\n \
-            On peut affirmer avec moins de 5{%} de se tromper que la durée d'intervention est plus longue dans les zones très dense.")
+            On peut affirmer avec moins de 5% de se tromper que la durée d'intervention est plus longue dans les zones très dense.")
     
     st.subheader("Analyse du temps d'intervention en fonction du prix de l'immobilier")
 
     st.subheader("Test Annova robuste")
-    anova_robuste_result = pg.welch_anova(dv='response_time', between='label_price', data=lfb)
+    anova_robuste_result = pd.read_csv('Data csv/anova_label.csv')
 
     st.write(anova_robuste_result)
     st.write("La valeur de p associée à ce test est de 0, ce qui indique une différence significative entre les groupes.\n \
             Cependant, il est important de noter que l'effect size (η²) est très faible, avec une valeur de 0.0116")
     
     st.subheader("Test de Tukey")
-    tukey_label_price = MultiComparison(lfb['response_time'], lfb['label_price']).tukeyhsd()
-    tukey_results_df = pd.DataFrame(data=tukey_label_price._results_table.data[1:], columns=tukey_label_price._results_table.data[0])
+    
+    tukey_results_df = pd.read_csv("Data csv/tukey_label.csv")
     st.subheader(" Multiple Comparison of Means - Tukey HSD, FWER=0.05   ")
     st.write(tukey_results_df)
     st.write("Le meandiff avec le plus de magnitude concerne les zones dont le prix de l'immobilier est élevé contre les zones où les prix son bas. \nOn peut affirmer avec moins de 5{%} de chance de se tromper que le temps d'intervention est plus rapide pour les zones dont le prix de l'immobilié est élevé.")
     
     st.subheader("Analyse du temps d'intervention en fonction du prix de l'immobilier et population")
-    st.subheader("Test ANOVA")
-    formule = "response_time ~ C(label_price) + C(label_pop) + C(label_pop):C(label_price)"
-    model = ols(formule, lfb).fit()
-    aov_table = anova_lm(model, type=2)
-    st.write(aov_table)  
+    st.subheader("Test ANOVA à 2 facteurs")
+    
+    aov = pd.read_csv("Data csv/inter_anova.csv")
+    st.write(aov)  
     st.write("Toutes les valeurs p sont très proches de zéro, ce qui signifie que l'effet des différents niveaux de facteur, ainsi que leur interaction, sont statistiquement significatifs. \n Cela confirme notre hypothése qu'il existe une interaction significative entre le prix de l'immobilier, la durée d'intervention et la population sur la variable de réponse.")                   
 #----------------------------------------------Modélisation------------------------------------------------------------------
 if page == pages[4]:
