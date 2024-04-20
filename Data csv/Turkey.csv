@@ -1,0 +1,4 @@
+group1,group2,meandiff,p-adj,lower,upper,reject
+Dense,Faible densité,-74.0645,0.0,-82.3219,-65.807,True
+Dense,Très dense,91.8495,0.0,83.1695,100.5296,True
+Faible densité,Très dense,165.914,0.0,155.9859,175.8421,True
